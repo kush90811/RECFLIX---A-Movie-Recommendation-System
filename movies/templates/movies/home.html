@@ -1,0 +1,114 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Movie Recommender — Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'movies/css/styles.css' %}">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Movie Recommender</a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <div class="row mb-3">
+        <div class="col-md-8">
+          <h1 class="h3">Popular Movies</h1>
+        </div>
+        <div class="col-md-4 text-end">
+          <button id="refresh" class="btn btn-primary">Refresh</button>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="row mb-4">
+        <div class="col-md-4 mb-2">
+          <input id="q-title" class="form-control" placeholder="Search by movie title (e.g., Avatar)">
+        </div>
+        <div class="col-md-3 mb-2">
+          <input id="q-actor" class="form-control" placeholder="Filter by actor (e.g., Shah Rukh)">
+        </div>
+        <div class="col-md-2 mb-2">
+          <select id="q-industry" class="form-select">
+            <option value="">All industries</option>
+          </select>
+        </div>
+        <div class="col-md-2 mb-2">
+          <select id="q-genre" class="form-select">
+            <option value="">All genres</option>
+          </select>
+        </div>
+        <div class="col-md-1 mb-2 text-end">
+          <button id="btn-search" class="btn btn-outline-primary">Search</button>
+        </div>
+        <div class="col-md-12 mt-2 text-end">
+          <button id="btn-clear" class="btn btn-outline-secondary">Clear</button>
+        </div>
+      </div>
+
+      <div id="status" class="mb-3" aria-live="polite"></div>
+
+      <div id="movies" class="row g-3"></div>
+
+      <div class="d-flex justify-content-center my-4">
+        <div id="spinner" class="text-center d-none">
+          <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+        </div>
+        <button id="load-more" class="btn btn-outline-primary">Load more</button>
+      </div>
+
+      <h3 class="mt-5">External search results</h3>
+      <div class="row mt-3" id="external-row"></div>
+
+      <!-- sentinel for infinite scroll -->
+      <div id="scroll-sentinel"></div>
+
+      <!-- Recommendations & Best -->
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <h5>Best in Genre</h5>
+          <div class="input-group mb-2">
+            <select id="best-genre" class="form-select">
+              <option value="">Choose genre</option>
+            </select>
+            <button id="best-btn" class="btn btn-primary">Get Best</button>
+          </div>
+          <div id="best-result"></div>
+        </div>
+        <div class="col-md-6">
+          <h5>Recommendations</h5>
+          <div class="input-group mb-2">
+            <input id="rec-genres" class="form-control" placeholder="genres comma separated">
+            <input id="rec-actors" class="form-control" placeholder="actors comma separated">
+            <button id="rec-btn" class="btn btn-primary">Recommend</button>
+          </div>
+          <div id="rec-results" class="row g-2"></div>
+        </div>
+      </div>
+
+      <!-- Movie detail modal -->
+      <div class="modal fade" id="movieModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modal-title">Movie</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div id="modal-body-content"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'movies/js/app.js' %}"></script>
+  </body>
+</html>

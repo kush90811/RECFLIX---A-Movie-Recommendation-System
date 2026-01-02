@@ -1,0 +1,49 @@
+/* Small layout tweaks for the movie grid */
+body {
+  background: #f8f9fa;
+}
+.movie-card {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.movie-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+.movie-card img {
+  width: 100%;
+  display: block;
+  height: 330px;
+  object-fit: cover;
+}
+.movie-body {
+  padding: 0.5rem;
+}
+.movie-title {
+  font-size: 0.95rem;
+  margin: 0;
+}
+.movie-meta {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+/* Filters and panels */
+#best-result .movie-card, #rec-results .movie-card {
+  width: 100%;
+}
+
+/* Modal tweaks */
+.modal-body img {
+  width: 100%;
+  height: auto;
+}
+
+/* Responsive small tweaks */
+@media (max-width: 576px) {
+  .movie-card img { height: 260px; }
+}
