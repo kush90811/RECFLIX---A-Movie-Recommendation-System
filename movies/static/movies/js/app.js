@@ -17,26 +17,194 @@ function createMovieCard(m) {
 
   const card = document.createElement('div');
   card.className = 'movie-card';
-  card.dataset.movieId = m.id;
+  if (m.id) card.dataset.movieId = m.id;
 
   const img = document.createElement('img');
   img.alt = m.title || '';
   img.src = imgFor(m.poster_path);
   img.onerror = () => img.src = PLACEHOLDER;
 
-  const b = document.createElement('div');
-  b.className = 'movie-body';
-  b.innerHTML = `<p class="movie-title">${m.title}</p><p class="movie-meta">${m.release_date || ''}</p>`;
+  const overlay = document.createElement('div');
+  overlay.className = 'movie-overlay';
+  overlay.innerHTML = `
+    <div class="d-flex flex-column">
+      <span class="title">${m.title}</span>
+      <small class="movie-meta">${m.release_date || ''}</small>
+    </div>
+    <div class="d-flex align-items-center">
+      <div class="stars" aria-hidden="true">
+        ${renderStars(m.vote_average)}
+      </div>
+    </div>
+  `;
 
   card.appendChild(img);
-  card.appendChild(b);
+  card.appendChild(overlay);
   col.appendChild(card);
 
-  // click -> open detail
-  card.addEventListener('click', () => openDetail(m.id));
+  // click -> open detail (external or internal)
+  if (card.dataset.movieId) {
+    card.addEventListener('click', () => openDetail(m.id));
+  } else if (m.tmdb_id) {
+    card.addEventListener('click', () => openExternalDetail(m.tmdb_id));
+  }
 
   return col;
 }
+
+function renderStars(avg) {
+  const score = Math.round((avg || 0) / 2); // convert 0-10 to ~0-5
+  let out = '';
+  for (let i=1;i<=5;i++) {
+    out += `<span class="star ${i<=score? '' : 'empty'}"></span>`;
+  }
+  return out;
+}
+
+function renderRecommendations(list) {
+  const row = el('recommend-row');
+  if (!row) return;
+  row.innerHTML = '';
+  list.forEach(m => {
+    const col = document.createElement('div'); col.className = 'col-6 col-sm-4 col-md-3';
+    const card = createMovieCard(m);
+    col.appendChild(card);
+    row.appendChild(col);
+  });
+}
+
+// add loadRecommendations helper to call user API if present
+async function loadRecommendations() {
+  try {
+    const res = await fetch('/api/recommend/user/');
+    if (!res.ok) return;
+    const list = await res.json();
+    renderRecommendations(list);
+  } catch (e) { console.warn('Failed to load user recommendations', e); }
+}
+
+// call user-style recommendations on page load if signed-in
+document.addEventListener('DOMContentLoaded', () => {
+  loadFilters();
+  fetchMovies(1, false);
+
+  // try to load recommendations if body indicates auth
+  const auth = document.body.dataset.userAuthenticated === 'true';
+  if (auth) loadRecommendations();
+
+  // fetch multiple trending categories
+  fetchTrendingCategories();
+
+  el('refresh').addEventListener('click', () => { currentPage = 1; fetchMovies(1, false); });
+
+});
+
+// --- Trending helper functions ---
+const TRENDING_CATEGORIES = [
+  { title: 'Trending Now', params: {} },
+  { title: 'Action', params: { genre: 'Action' } },
+  { title: 'Comedy', params: { genre: 'Comedy' } },
+  { title: 'Bollywood', params: { industry: 'Bollywood' } },
+];
+
+function createSmallMovieCard(m) {
+  const wrap = document.createElement('div');
+  wrap.className = 'trending-card';
+  const card = createMovieCard(m);
+  // make it compact
+  card.querySelector('img').style.height = 'auto';
+  card.style.borderRadius = '8px';
+  wrap.appendChild(card);
+  return wrap;
+}
+
+function renderTrendingSection(title, list) {
+  const container = document.createElement('div');
+  container.className = 'trending-category';
+  const hdr = document.createElement('div'); hdr.className = 'trending-title';
+  hdr.innerHTML = `<h6 class="neon">${title}</h6><a href="#" class="text-muted small">View all</a>`;
+  const row = document.createElement('div'); row.className = 'trending-row';
+  list.forEach(m => row.appendChild(createSmallMovieCard(m)));
+  container.appendChild(hdr);
+  container.appendChild(row);
+  el('trending-categories').appendChild(container);
+}
+
+async function fetchTrendingCategories() {
+  try {
+    el('trending-categories').innerHTML = '';
+    for (const cat of TRENDING_CATEGORIES) {
+      const params = new URLSearchParams();
+      if (cat.params.genre) params.set('genre', cat.params.genre);
+      if (cat.params.industry) params.set('industry', cat.params.industry);
+      params.set('limit', 12);
+      const res = await fetch('/api/trending/?' + params.toString());
+      if (!res.ok) continue;
+      const list = await res.json();
+      if (list && list.length) renderTrendingSection(cat.title, list);
+    }
+  } catch (e) { console.warn('Trending load failed', e); }
+}
+  el('btn-search').addEventListener('click', async () => {
+    currentQuery.title = el('q-title').value.trim();
+    currentQuery.actor = el('q-actor').value.trim();
+    currentQuery.industry = el('q-industry').value.trim();
+    currentQuery.genre = el('q-genre').value.trim();
+    currentPage = 1;
+    await fetchMovies(1, false);
+
+    // If no results and user searched a title, fall back to external TMDB search
+    const statusText = el('status').textContent || '';
+    const moviesEl = el('movies');
+    if ((moviesEl.children.length === 0 || statusText.includes('No movies')) && currentQuery.title) {
+      // call external search
+      try {
+        const res = await fetch('/api/external-search/?q=' + encodeURIComponent(currentQuery.title));
+        if (res.ok) {
+          const list = await res.json();
+          if (list && list.length) {
+            el('status').textContent = 'Showing external search results (from TMDB) — click a card to view details.';
+            moviesEl.innerHTML = '';
+            for (const m of list) {
+              const col = createMovieCard(m); // createMovieCard uses fields title/poster_path/release_date
+              // mark as external
+              col.querySelector('.movie-card').dataset.external = 'true';
+              col.querySelector('.movie-card').dataset.tmdbId = m.tmdb_id;
+              // when clicked, open external detail handler
+              col.querySelector('.movie-card').addEventListener('click', () => openExternalDetail(m.tmdb_id));
+              moviesEl.appendChild(col);
+            }
+            el('load-more').style.display = 'none';
+            if (observer) observer.disconnect();
+          }
+        }
+      } catch (e) {
+        console.warn('External search failed', e);
+      }
+    }
+  });
+
+  el('btn-clear').addEventListener('click', () => {
+    el('q-actor').value = '';
+    el('q-industry').value = '';
+    el('q-genre').value = '';
+    currentQuery = { actor: '', industry: '', genre: '' };
+    currentPage = 1;
+    fetchMovies(1, false);
+  });
+
+  el('load-more').addEventListener('click', () => {
+    el('spinner').classList.remove('d-none');
+    currentPage += 1;
+    fetchMovies(currentPage, true);
+  });
+
+  el('best-btn').addEventListener('click', getBest);
+  el('rec-btn').addEventListener('click', recommend);
+
+  // attach infinite scroll after initial load
+  attachInfiniteScroll();
+});
 
 async function fetchMovies(page=1, append=false) {
   const status = el('status');

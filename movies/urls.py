@@ -15,4 +15,5 @@ urlpatterns += [
     path('genres/', api.GenreListAPI.as_view(), name='api-genres'),
     path('industries/', api.IndustryListAPI.as_view(), name='api-industries'),
     path('external-search/', api.ExternalSearchAPI.as_view(), name='api-external-search'),
+    path('trending/', api.TrendingAPI.as_view(), name='api-trending'),
 ]

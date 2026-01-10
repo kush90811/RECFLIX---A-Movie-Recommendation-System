@@ -1,49 +1,87 @@
-/* Small layout tweaks for the movie grid */
-body {
-  background: #f8f9fa;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+:root{
+  --bg-1: #0f1724;
+  --bg-2: #08121a;
+  --card: rgba(255,255,255,0.04);
+  --glass: rgba(255,255,255,0.06);
+  --accent: #7c3aed; /* violet */
+  --accent-2: #06b6d4; /* cyan */
+  --muted: #9aa4b2;
 }
-.movie-card {
-  background: #fff;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+html,body{height:100%;}
+body{
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  margin:0;
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(124,58,237,0.08), transparent 10%),
+              radial-gradient(1000px 500px at 90% 85%, rgba(6,182,212,0.06), transparent 10%),
+              linear-gradient(180deg,var(--bg-1), var(--bg-2));
+  color: #e6eef6;
+  -webkit-font-smoothing:antialiased;
 }
-.movie-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+.navbar{background:transparent;}
+.navbar .navbar-brand{
+  font-weight:700;
+  letter-spacing:0.6px;
+  color: #fff;
 }
-.movie-card img {
-  width: 100%;
-  display: block;
-  height: 330px;
-  object-fit: cover;
+.neon{color: #e6eef6; text-shadow: 0 0 6px rgba(124,58,237,0.5), 0 0 18px rgba(6,182,212,0.08);}
+.neon.small{font-size:1rem;}
+.hero{background:linear-gradient(90deg, rgba(124,58,237,0.06), rgba(6,182,212,0.04)); border-radius:12px; padding:1.6rem;}
+.lead{color:var(--muted);}
+
+/* Movie card futuristic glass */
+.movie-card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+  border-radius:10px;
+  overflow:hidden;
+  cursor:pointer;
+  transition: transform 220ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms cubic-bezier(.2,.9,.2,1);
+  position:relative;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.04);
 }
-.movie-body {
-  padding: 0.5rem;
+.movie-card:hover{ transform: translateY(-8px) scale(1.02); box-shadow: 0 10px 30px rgba(2,6,23,0.6); }
+.movie-card img{ width:100%; height:auto; aspect-ratio: 2 / 3; object-fit:cover; display:block; filter: saturate(1.05) contrast(1.02); }
+.movie-body{ padding:0.6rem 0.7rem; }
+.movie-title{ font-weight:600; margin:0; color:#fff; text-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+.movie-meta{ color:var(--muted); font-size:0.85rem; margin-top:4px; }
+
+/* overlay */
+.movie-overlay{ position:absolute; left:0; right:0; bottom:0; padding:0.7rem; background: linear-gradient(180deg, transparent, rgba(2,6,23,0.6)); display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.movie-overlay .title{ color:#fff; font-weight:700; }
+.movie-badge{ padding:4px 8px; border-radius:999px; background: rgba(0,0,0,0.35); color:#fff; font-size:0.8rem; border:1px solid rgba(255,255,255,0.04); }
+
+/* rating stars */
+.stars{ display:flex; gap:4px; align-items:center; }
+.star{ width:18px; height:18px; display:inline-block; background:linear-gradient(180deg,#ffd166,#ffb703); -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12 .587l3.668 7.431L23.5 9.748l-5.75 5.605L19.336 24 12 19.897 4.664 24l1.586-8.647L.5 9.748l7.832-1.73z"/></svg>') center / contain no-repeat; mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12 .587l3.668 7.431L23.5 9.748l-5.75 5.605L19.336 24 12 19.897 4.664 24l1.586-8.647L.5 9.748l7.832-1.73z"/></svg>') center / contain no-repeat; opacity:0.95; box-shadow: 0 2px 8px rgba(0,0,0,0.6);
 }
-.movie-title {
-  font-size: 0.95rem;
-  margin: 0;
-}
-.movie-meta {
-  font-size: 0.85rem;
-  color: #6c757d;
+.star.empty{ filter: grayscale(1) opacity(0.4); background: linear-gradient(180deg,#666,#444);} 
+
+/* modal improvements */
+.modal-content{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border: none; color:#e6eef6; }
+.modal-header{ border-bottom:none; }
+.modal-body{ padding:1rem 1.2rem; }
+.modal-body img{ width:100%; height:auto; border-radius:6px; }
+
+/* recommended row */
+#recommend-row .movie-card{ }
+#recommend-row .movie-card img{ width:100%; height:auto; aspect-ratio: 2 / 3; max-height:140px; }
+
+/* Trending horizontal carousels */
+.trending-category{ margin-bottom:1.6rem; }
+.trending-title{ display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; }
+.trending-row{ display:flex; gap:12px; overflow-x:auto; padding-bottom:6px; }
+.trending-row::-webkit-scrollbar{ height:8px; }
+.trending-row::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.06); border-radius:999px; }
+.trending-card{ flex: 0 0 150px; width:150px; }
+.trending-card .movie-card img{ width:100%; height:auto; aspect-ratio: 2 / 3; }
+
+/* small screens */
+@media (max-width: 576px){
+  .movie-card img { height: auto; aspect-ratio: 2 / 3; }
 }
 
-/* Filters and panels */
-#best-result .movie-card, #rec-results .movie-card {
-  width: 100%;
-}
+/* subtle animated accent */
+@keyframes pulseAccent { 0%{ box-shadow: 0 0 0 rgba(124,58,237,0.0);} 50%{ box-shadow: 0 0 24px rgba(124,58,237,0.08);} 100%{ box-shadow: 0 0 0 rgba(124,58,237,0.0);} }
+.neon{ animation: pulseAccent 4s infinite; }
 
-/* Modal tweaks */
-.modal-body img {
-  width: 100%;
-  height: auto;
-}
-
-/* Responsive small tweaks */
-@media (max-width: 576px) {
-  .movie-card img { height: 260px; }
-}

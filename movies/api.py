@@ -125,3 +125,30 @@ class ExternalSearchAPI(APIView):
             })
         return Response(out)
 
+
+class TrendingAPI(APIView):
+    """Return top movies ordered by popularity for a given genre or industry.
+
+    Query params: ?genre=Action&industry=Bollywood&limit=12&type=popular|top_rated
+    """
+
+    def get(self, request):
+        genre = request.query_params.get('genre')
+        industry = request.query_params.get('industry')
+        limit = int(request.query_params.get('limit') or 12)
+        sort_type = request.query_params.get('type') or 'popular'
+
+        qs = Movie.objects.all()
+        if genre:
+            qs = qs.filter(genres__name__iexact=genre)
+        if industry:
+            qs = qs.filter(industry__name__iexact=industry)
+
+        if sort_type == 'top_rated':
+            qs = qs.order_by('-vote_average', '-popularity')
+        else:
+            qs = qs.order_by('-popularity', '-vote_average')
+
+        qs = qs.distinct()[:limit]
+        return Response(MovieSerializer(qs, many=True).data)
+
