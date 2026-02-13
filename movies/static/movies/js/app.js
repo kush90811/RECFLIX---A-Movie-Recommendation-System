@@ -5,7 +5,7 @@ function el(id) { return document.getElementById(id); }
 
 let currentPage = 1;
 const PAGE_SIZE = 24;
-let currentQuery = { actor: '', industry: '', genre: '' };
+let currentQuery = { title: '', actor: '', industry: '', genre: '' };
 
 function imgFor(poster_path) {
   return poster_path ? `${TMDB_IMAGE_BASE}${poster_path}` : PLACEHOLDER;
@@ -83,21 +83,8 @@ async function loadRecommendations() {
   } catch (e) { console.warn('Failed to load user recommendations', e); }
 }
 
-// call user-style recommendations on page load if signed-in
-document.addEventListener('DOMContentLoaded', () => {
-  loadFilters();
-  fetchMovies(1, false);
-
-  // try to load recommendations if body indicates auth
-  const auth = document.body.dataset.userAuthenticated === 'true';
-  if (auth) loadRecommendations();
-
-  // fetch multiple trending categories
-  fetchTrendingCategories();
-
-  el('refresh').addEventListener('click', () => { currentPage = 1; fetchMovies(1, false); });
-
-});
+// (Removed duplicate DOMContentLoaded handler — initialization occurs
+// later in the file where all controls are wired together.)
 
 // --- Trending helper functions ---
 const TRENDING_CATEGORIES = [
@@ -184,14 +171,16 @@ async function fetchTrendingCategories() {
     }
   });
 
-  el('btn-clear').addEventListener('click', () => {
-    el('q-actor').value = '';
-    el('q-industry').value = '';
-    el('q-genre').value = '';
-    currentQuery = { actor: '', industry: '', genre: '' };
+  // bind all clear buttons in the template (there are duplicate clear buttons)
+  document.querySelectorAll('#btn-clear').forEach(b => b.addEventListener('click', () => {
+    if (el('q-actor')) el('q-actor').value = '';
+    if (el('q-industry')) el('q-industry').value = '';
+    if (el('q-genre')) el('q-genre').value = '';
+    if (el('q-title')) el('q-title').value = '';
+    currentQuery = { title: '', actor: '', industry: '', genre: '' };
     currentPage = 1;
     fetchMovies(1, false);
-  });
+  }));
 
   el('load-more').addEventListener('click', () => {
     el('spinner').classList.remove('d-none');
@@ -217,6 +206,7 @@ async function fetchMovies(page=1, append=false) {
     if (currentQuery.actor) params.set('actor', currentQuery.actor);
     if (currentQuery.industry) params.set('industry', currentQuery.industry);
     if (currentQuery.genre) params.set('genre', currentQuery.genre);
+    if (currentQuery.title) params.set('q', currentQuery.title);
     params.set('page', page);
     params.set('page_size', PAGE_SIZE);
 
